@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-form h2 {
+            margin-bottom: 20px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #google-btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-form">
+        <h2>Login</h2>
+        <form id="form">
+            <input type="email" placeholder="email" required />
+            <input type="password" placeholder="password" required />
+            <button type="submit">Login</button>
+            <button type="button" onclick="handleForgetPassword()" style="margin-top: 10px;">Forget Password?</button>
+        </form>
+
+        <!-- Google login button -->
+        <div id="google-btn"></div>
+        <div id="forgetPassword-btn"></div>
+    </div>
+
+    <script>
+        // Replace with your real client ID from Google Console
+        const CLIENT_ID = "562618733067-3dqn2epndg5gtji9i6f8ejgf6k0vj1j6.apps.googleusercontent.com";
+
+        window.onload = () => {
+            google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: handleCredentialResponse,
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById("google-btn"),
+                {
+                    theme: "outline",
+                    size: "large",
+                    text: "signin_with",
+                }
+            );
+        };
+
+        function handleCredentialResponse(response) {
+            const tokenId = response.credential;
+            const googleId = response.credential;
+            console.log("ID Token:", tokenId);
+
+            // Decode the JWT (optional)
+            const payload = JSON.parse(atob(tokenId.split('.')[1]));
+            console.log("User Info:", payload);
+
+            // Optional: send token to your backend
+            
+            fetch('http://localhost:4200/verifySocialLogin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tokenId,googleId })
+            }).then(async res => {
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    console.log("Server response:", data);
+                } catch (e) {
+                    console.error("Invalid JSON from server:", text);
+                }
+            })
+        }
+
+
+        document.getElementById("form").onsubmit = function (e) {
+            e.preventDefault();
+            alert("Login with email/password (not implemented)");
+        };
+    </script>
+</body>
+
+</html>
